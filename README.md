@@ -65,3 +65,38 @@ source /usr/lib/openfoam/openfoam2106/etc/bashrc
 ```
 
 If deployment with external access is required, a sample Nginx configuration file is provided [here](config/jupyterhub.conf). You need to set your external domain and port number on this file before placing it under `/etc/nginx/conf.d` and running `systemctl reload nginx`. Notice that SSL is not configured and you will need `certbot` to protect your connection.
+
+## Base contents of the container
+
+The following languages/dialects are supported in Notebooks:
+
+- Python
+- Lua
+- Octave
+- SageMath
+- R
+
+The following languages are installed, users must add their kernels:
+
+- Julia
+- Haskell
+
+For general CLI development only there is also:
+
+- C/C++
+- Fortran
+- NodeJS
+- Rust (TODO: ensure automation of install for all users)
+
+## References
+
+For maintenance of this container in the future consider the following references:
+
+- https://hub.docker.com/r/nvidia/cuda/tags
+- https://hub.docker.com/r/jupyterhub/jupyterhub
+- https://pypi.org/project/jupyterhub/2.0.0/
+- https://github.com/gibiansky/IHaskell
+- https://irkernel.github.io/installation/
+- https://stackoverflow.com/questions/47615751
+- https://askubuntu.com/questions/876240
+- https://askubuntu.com/questions/313089

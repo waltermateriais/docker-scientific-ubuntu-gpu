@@ -1,36 +1,5 @@
 ##############################################################################
 # GPU ENABLED JUPYTERHUB AND MASTER SCIENTIFIC ENVIRONMENT
-#
-# References
-# ==========
-# https://hub.docker.com/r/nvidia/cuda/tags
-# https://hub.docker.com/r/jupyterhub/jupyterhub
-# https://pypi.org/project/jupyterhub/2.0.0/
-# https://github.com/jupyterhub/jupyterhub/blob/main/Dockerfile
-# https://doc.sagemath.org/html/en/installation/conda.html
-# https://github.com/gibiansky/IHaskell
-# https://irkernel.github.io/installation/
-# https://stackoverflow.com/questions/47615751
-# https://askubuntu.com/questions/876240
-# https://askubuntu.com/questions/313089
-#
-# The following languages/dialects are supported in Notebooks:
-# - Python
-# - Lua
-# - Octave
-# - SageMath
-# - R
-#
-# The following languages are installed, users must add their kernels:
-# - Julia
-# - Haskell
-# 
-# For general CLI development only there is also:
-# - C/C++
-# - Fortran
-# - Rust
-# - NodeJS
-#
 ##############################################################################
 
 FROM nvidia/cuda:11.4.2-cudnn8-runtime-ubuntu20.04
@@ -191,8 +160,8 @@ RUN pip install -r requirements.txt
 RUN python3 -m lua_kernel.install
 
 COPY config/rpkgs.r /srv/jupyterhub/
-# RUN Rscript /srv/jupyterhub/rpkgs.r
-# RUN R -e 'IRkernel::installspec(user = FALSE)'
+RUN Rscript /srv/jupyterhub/rpkgs.r
+RUN R -e 'IRkernel::installspec(user = FALSE)'
 
 COPY config/make_users.sh /srv/jupyterhub/
 RUN chmod +x /srv/jupyterhub/make_users.sh
