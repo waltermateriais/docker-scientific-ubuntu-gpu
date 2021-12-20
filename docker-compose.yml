@@ -1,0 +1,28 @@
+# https://docs.docker.com/compose/gpu-support/
+version: '3.9'
+
+services:
+  jupyter_hub:
+      build:
+        context: .
+        dockerfile: Dockerfile
+        shm_size: ${GPU_SHM_SIZE}
+      image: jupyterhub_gpu
+      shm_size: ${GPU_SHM_SIZE}
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: 1
+                capabilities: [gpu]
+      restart: always
+      runtime: nvidia
+      environment:
+        NVIDIA_VISIBLE_DEVICES: all
+        NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      ports:
+        - ${PORT_JUPYTERHUB_URI}:8000
+      volumes:
+        - ${PROJECTS_ROOT}/jupyterhub:/home
+      command: sh -c "/srv/jupyterhub/make_users.sh && jupyterhub"
