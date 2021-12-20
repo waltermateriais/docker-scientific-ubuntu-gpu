@@ -66,6 +66,8 @@ source /opt/SU2/bashrc
 source /usr/lib/openfoam/openfoam2106/etc/bashrc
 ```
 
+1. Currently you need to `export OMPI_MCA_btl_vader_single_copy_mechanism=none` to be able to use MPI.
+
 If deployment with external access is required, a sample Nginx configuration file is provided [here](config/jupyterhub.conf). You need to set your external domain and port number on this file before placing it under `/etc/nginx/conf.d` and running `systemctl reload nginx`. Notice that SSL is not configured and you will need `certbot` to protect your connection.
 
 ## Base contents of the container
@@ -102,3 +104,4 @@ For maintenance of this container in the future consider the following reference
 - https://stackoverflow.com/questions/47615751
 - https://askubuntu.com/questions/876240
 - https://askubuntu.com/questions/313089
+- https://bugs.openfoam.org/view.php?id=3163
