@@ -26,8 +26,34 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
     useradd -m -s /bin/bash -G jupyterusers user
     echo 'user:SecretPass*1234' | chpasswd
     ```
-    - requirements.txt: typical `pip` file with Python packages to install.
-    - rpkgs.r: an R-script managing the installation of required R packages.
+    - requirements.txt: typical `pip` file with Python packages to install following the directives provided [here](https://pip.pypa.io/en/stable/cli/pip_install/#requirement-specifiers).
+    - rpkgs.r: an R-script managing the installation of required R packages. A sample script is provided below, where you are supposed to populate list `packages` to install all the globally installed packages in your environment. Notice the function `pkgLoad` is called in the end of script.
+    ```R
+    pkgLoad <- function()
+    {
+        repos <- "https://cran.irsn.fr"
+
+        packages <- c("dplyr", "ggplot2")
+
+        packagecheck <- match(packages, utils::installed.packages()[, 1])
+
+        packagestoinstall <- packages[is.na(packagecheck)]
+
+        if(length(packagestoinstall) > 0L) 
+        {
+            utils::install.packages(packagestoinstall, repos = repos)
+        }
+
+        for(package in packages) 
+        {
+            suppressPackageStartupMessages(
+                library(package, character.only = TRUE, quietly = TRUE)
+            )
+        }
+    }
+
+    pkgLoad()
+    ```
 
 1. After filling all the files run `docker-compose up --build` or `docker-compose up -d`, as required.
 
