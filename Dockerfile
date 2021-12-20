@@ -110,6 +110,7 @@ RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
 
 RUN cd /opt/ && git clone https://github.com/su2code/SU2.git
 
+# TODO fix line endings after export with \\n
 RUN echo "\
     export SU2_HOME=/opt/SU2\
     export SU2_RUN=/opt/SU2/bin\
@@ -168,6 +169,36 @@ RUN chmod +x /srv/jupyterhub/make_users.sh
 
 RUN groupadd jupyterusers
 EXPOSE 8000
+
+RUN pip install gmsh
+# gmsh==4.9.1
+
+# Find a way of doing this per user!
+# RUN . /opt/SU2/bashrc
+# RUN . /usr/lib/openfoam/openfoam2106/etc/bashrc
+
+# Current version not supported!
+# RUN pip install jupyter_tensorboard
+# RUN jupyter labextension install jupyterlab_tensorboard
+
+# Cannot uninstall psutil (from distutils).
+# RUN pip install jupyterlab-system-monitor
+
+RUN pip install --upgrade jupyterlab jupyterlab-git
+
+RUN jupyter labextension install jupyterlab-plotly
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
+RUN jupyter labextension install @techrah/text-shortcuts
+RUN jupyter labextension install jupyterlab-spreadsheet
+
+RUN pip install \
+    jupyterlab-execute-time \
+    jupyterlab-drawio \
+    jupyterlab_theme_solarized_dark \
+    jupyter_bokeh \
+    ipympl \
+    lckr-jupyterlab-variableinspector
+
 ENTRYPOINT []
 
 ##############################################################################
