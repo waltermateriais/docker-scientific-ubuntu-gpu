@@ -8,6 +8,7 @@ services:
         dockerfile: Dockerfile
         shm_size: ${GPU_SHM_SIZE}
       image: jupyterhub_gpu
+      container_name: jupyterhub_gpu
       shm_size: ${GPU_SHM_SIZE}
       deploy:
         resources:
