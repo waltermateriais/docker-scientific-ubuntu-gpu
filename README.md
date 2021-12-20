@@ -2,14 +2,16 @@
 
 This repository provides a Docker environment consisting of a mixture of Data Science and CFD. The environment aims at serving JupyterHub with access to GPU and also allow OpenFOAM and SU2 from that platform. It is built to be an all-in-one system, with several scientific environments and languages available. To have it working some files need to be created and prepared before running `docker-compose` to create the environment.
 
-1. Create and edit `.env` to match the values you expect:
-    - PORT_JUPYTERHUB_URI: port to access/expose the hub locally/over a reverse proxy.
-    - PROJECTS_ROOT: mount point of `/home` for physical storage of data.
-    - GPU_SHM_SIZE: memory of NVidia GPU to be used.
-    - The following snipped illustrates a possible content of this file:
+1. Create and edit `.env` to match the values you expect. The following commented snippet illustrates a possible content of this file with the required variables.:
     ```bash
+    # port to access/expose the hub locally/over a reverse proxy.
     PORT_JUPYTERHUB_URI=8000
+
+    # mount point of `/home` for physical (local) storage of data
+    # (a directory jupyterhub will be created at this location).
     PROJECTS_ROOT=$HOME
+
+    # memory of Nvidia GPU to be used.
     GPU_SHM_SIZE=4gb
     ```
 
