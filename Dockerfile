@@ -120,7 +120,6 @@ RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
 
 RUN cd /opt/ && git clone https://github.com/su2code/SU2.git
 
-# TODO fix line endings after export with \\n
 RUN echo "\
     export SU2_HOME=/opt/SU2\n\
     export SU2_RUN=/opt/SU2/bin\n\
@@ -161,16 +160,6 @@ RUN echo "\
 ##############################################################################
 # CANTERA
 ##############################################################################
-
-# TODO find a way of making different bashrc visible in jupyter.
-# TODO add local sundials here (to continue scikit-odes and cantera)!
-# TODO revisit the following flags when changing tag to 2.6.0:
-# - openmp_flags='-fopenmp'
-# - skip_slow_tests='no'
-# - show_long_tests='no'
-# - verbose_tests='no'
-# - legacy_rate_constants='no'
-# 
 
 RUN pip install scons
 RUN git clone https://github.com/Cantera/cantera.git && \
@@ -231,15 +220,6 @@ RUN git clone https://github.com/Cantera/cantera.git && \
     scons install
 RUN rm -rf cantera
 
-#   applications                /opt/cantera/bin
-#   library files               /opt/cantera/lib
-#   C++ headers                 /opt/cantera/include
-#   samples                     /opt/cantera/share/cantera/samples
-#   data files                  /opt/cantera/share/cantera/data
-#   Python package (cantera)    /opt/cantera/lib/python3.8/site-packages
-#   Python samples              /opt/cantera/lib/python3.8/site-packages/cantera/examples
-#   source /opt/cantera/bin/setup_cantera
-
 ##############################################################################
 # JUPYTER WORKING CONDITIONS
 ##############################################################################
@@ -248,7 +228,6 @@ RUN mkdir -p /srv/jupyterhub/
 WORKDIR /srv/jupyterhub/
 COPY config/jupyterhub_config.py /srv/jupyterhub/
 
-# TODO add  Ncpus = 6 or sudo apt install r-cran-dplyr...
 COPY config/rpkgs.r /srv/jupyterhub/
 RUN Rscript /srv/jupyterhub/rpkgs.r
 RUN R -e 'IRkernel::installspec(user = FALSE)'
@@ -264,15 +243,7 @@ RUN chmod +x /srv/jupyterhub/make_users.sh
 RUN groupadd jupyterusers
 EXPOSE 8000
 
-# Current version not supported!
-# RUN pip install jupyter_tensorboard
-# RUN jupyter labextension install jupyterlab_tensorboard
-
-# Cannot uninstall psutil (from distutils).
-# RUN pip install jupyterlab-system-monitor
-
 RUN pip install --upgrade jupyterlab jupyterlab-git
-
 RUN jupyter labextension install jupyterlab-plotly
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
 RUN jupyter labextension install @techrah/text-shortcuts
@@ -295,17 +266,6 @@ RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
     ln -s /opt/cantera/lib/python3.8/site-packages/Cantera-2.5.1-py3.8.egg-info \
     /usr/local/lib/python3.8/dist-packages/ && \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
-
-# https://www.opensmokepp.polimi.it/menu-features/menu-features-ospp4of
-# https://www.opensmokepp.polimi.it/menu-features/menu-features-ospp-suite
-# RUN pip install pycalphad
-
-# Not working:
-# RUN python3 -m pip install -U https://github.com/OpenModelica/OMPython/archive/master.zip
-# RUN git clone https://github.com/OpenModelica/jupyter-openmodelica.git && \
-#     cd jupyter-openmodelica && \
-#     python3 setup.py install && \
-#     rm -rf jupyter-openmodelica
 
 ##############################################################################
 # ENTRYPOINT

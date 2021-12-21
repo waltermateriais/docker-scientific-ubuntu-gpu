@@ -3,4 +3,4 @@
 /config/make_users.sh
 /config/requirements.txt
 /config/rpkgs.r
-/sandbox/
+sandbox
