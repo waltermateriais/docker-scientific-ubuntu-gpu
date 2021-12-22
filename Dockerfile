@@ -267,6 +267,11 @@ RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
     /usr/local/lib/python3.8/dist-packages/ && \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
 
+RUN add-repository ppa:fenics-packages/fenics && \
+    apt update && apt -y install fenics
+
+RUN pip install PyFoam
+
 ##############################################################################
 # ENTRYPOINT
 ##############################################################################
