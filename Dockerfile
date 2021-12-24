@@ -129,108 +129,12 @@ RUN cd /opt/ && git clone https://github.com/su2code/SU2.git
 COPY build/su2.sh /srv/jupyterhub/
 RUN chmod u+x su2.sh && ./su2.sh
 
-# RUN echo "\
-#     export SU2_HOME=/opt/SU2\n\
-#     export SU2_RUN=/opt/SU2/bin\n\
-#     export PATH=/opt/SU2/bin:\$PATH\n\
-#     export PYTHONPATH=/opt/SU2/bin:\$PYTHONPATH\n\
-#     export LD_LIBRARY_PATH=/opt/SU2/lib:\$LD_LIBRARY_PATH\n\
-#     " > /opt/SU2/bashrc && . /opt/SU2/bashrc && \
-#     cd /opt/SU2 && CXXFLAGS='-march=native -mtune=native -funroll-loops' \
-#     ./meson.py build \
-#     -Dwith-mpi=enabled \
-#     -Dwith-omp=true \
-#     -Denable-tecio=true \
-#     -Denable-cgns=true \
-#     -Denable-autodiff=true \
-#     -Denable-directdiff=true \
-#     -Denable-pywrapper=true \
-#     -Denable-mkl=false \
-#     -Dmkl_root=/opt/intel/mkl \
-#     -Denable-openblas=true \
-#     -Dblas-name=openblas \
-#     -Denable-pastix=false \
-#     -Dpastix_root=externals/pastix/ \
-#     -Dscotch_root=externals/scotch/ \
-#     -Dcustom-mpi=false \
-#     -Denable-tests=true \
-#     -Denable-mixedprec=true \
-#     -Dextra-deps=lapack \
-#     -Denable-mpp=true \
-#     -Dopdi-backend=auto \
-#     -Dcodi-tape=JacobianLinear \
-#     -Dopdi-shared-read-opt=true \
-#     -Dlibrom_root='' \
-#     -Denable-librom=false \
-#     --prefix=/opt/SU2 \
-#     --optimization=2 && \
-#     cd /opt/SU2 && ./ninja -C build install
-
 ##############################################################################
 # CANTERA
 ##############################################################################
 
 COPY build/cantera.sh /srv/jupyterhub/
 RUN chmod u+x cantera.sh && ./cantera.sh
-
-# RUN pip install scons
-# RUN git clone https://github.com/Cantera/cantera.git && \
-#     cd cantera && git checkout v2.5.1 && \
-#     scons build \
-#         CXX=g++ \
-#         cxx_flags='-std=c++11' \
-#         CC=gcc \
-#         cc_flags='' \
-#         libdirname=lib \
-#         prefix=/opt/cantera/ \
-#         python_package=full \
-#         python_cmd=/usr/bin/python3 \
-#         matlab_toolbox='n' \
-#         matlab_path='' \
-#         f90_interface='y' \
-#         FORTRAN=/usr/bin/gfortran \
-#         FORTRANFLAGS='-O3' \
-#         coverage='no' \
-#         doxygen_docs='no' \
-#         sphinx_docs='no' \
-#         sphinx_cmd='sphinx-build' \
-#         sphinx_options='-W --keep-going' \
-#         system_eigen='n' \
-#         system_fmt='n' \
-#         system_yamlcpp='n' \
-#         system_sundials='n' \
-#         sundials_include='' \
-#         sundials_libdir='' \
-#         blas_lapack_libs='openblas,lapacke' \
-#         blas_lapack_dir='/lib/x86_64-linux-gnu/' \
-#         lapack_names='lower' \
-#         lapack_ftn_trailing_underscore='yes' \
-#         lapack_ftn_string_len_at_end='yes' \
-#         googletest='submodule' \
-#         env_vars='all' \
-#         thread_flags='-pthread' \
-#         optimize='yes' \
-#         optimize_flags='-O3 -Wno-inline' \
-#         no_optimize_flags='-O0' \
-#         debug='no' \
-#         debug_flags='-g' \
-#         no_debug_flags='' \
-#         debug_linker_flags='' \
-#         no_debug_linker_flags='' \
-#         warning_flags='-Wall' \
-#         extra_inc_dirs='' \
-#         extra_lib_dirs='' \
-#         boost_inc_dir='/usr/include' \
-#         stage_dir='' \
-#         VERBOSE='yes' \
-#         gtest_flags='' \
-#         renamed_shared_libraries='yes' \
-#         versioned_shared_library='yes' \
-#         use_rpath_linkage='yes' \
-#         layout='standard' \
-#         fast_fail_tests='no' && \
-#     scons install
-# RUN rm -rf cantera
 
 ##############################################################################
 # JUPYTER WORKING CONDITIONS
