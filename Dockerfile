@@ -76,7 +76,8 @@ RUN apt update && \
     libgl1-mesa-glx \
     libqt5widgets5 \
     cgns-convert \
-    libcgns-dev
+    libcgns-dev \
+    texlive-full
 
 RUN curl -sSL https://get.haskellstack.org/ | sh
 RUN python3 -m pip install --upgrade setuptools pip wheel
@@ -117,7 +118,7 @@ RUN pip install \
 RUN apt install -y sagemath
 
 ##############################################################################
-# CFD
+# SIMULATION
 ##############################################################################
 
 RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
@@ -129,12 +130,12 @@ RUN cd /opt/ && git clone https://github.com/su2code/SU2.git
 COPY build/su2.sh /srv/jupyterhub/
 RUN chmod u+x su2.sh && ./su2.sh
 
-##############################################################################
-# CANTERA
-##############################################################################
-
 COPY build/cantera.sh /srv/jupyterhub/
 RUN chmod u+x cantera.sh && ./cantera.sh
+
+# TODO OpenCalphad: automate Makefile edition.
+COPY build/opencalphad.sh /srv/jupyterhub/
+RUN cd /opt/ && git clone https://github.com/sundmanbo/opencalphad.git
 
 ##############################################################################
 # JUPYTER WORKING CONDITIONS
@@ -180,6 +181,43 @@ RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
     ln -s /opt/cantera/lib/python3.8/site-packages/Cantera-2.5.1-py3.8.egg-info \
     /usr/local/lib/python3.8/dist-packages/ && \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
+
+##############################################################################
+# PATCHES
+##############################################################################
+
+RUN apt update && apt install -y \
+    cmake-curses-gui \
+	libboost-all-dev \
+	openmpi-common \
+	fftw3-dev \
+    libgsl-dev \
+	libhdf5-dev \
+	libhdf5-openmpi-dev \
+	python3-opengl \
+	libgsl-dev \
+	nvidia-cuda-toolkit \
+	nvidia-cuda-dev\
+	nvidia-cuda-toolkit-gcc \
+    nvidia-cuda-toolkit-gdb \
+    doxygen \
+    gcc-7 \
+    g++-7
+
+RUN pip install pint
+
+# This seems abandoned... not building for now.
+# RUN cd /opt && git clone --recursive git://github.com/scafacos/scafacos.git && \
+#     cd scafacos && ./bootstrap && ./configure && make -j 4 && make check && \
+#     make install
+
+RUN cd /opt && \
+    git clone --single-branch -b 4.1 https://github.com/espressomd/espresso.git && \
+    mkdir build
+COPY config/myconfig-espresso.h /opt/espressomd/build/myconfig.h
+RUN cd /opt/espressomd/build && CC=/usr/bin/gcc-7 CXX=/usr/bin/g++-7 cmake .. && \
+    make && make install
+RUN OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 make check
 
 ##############################################################################
 # ENTRYPOINT

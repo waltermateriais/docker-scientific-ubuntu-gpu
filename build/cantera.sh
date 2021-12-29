@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
+rm -rf cantera/
+
 pip install scons
 
 git clone https://github.com/Cantera/cantera.git
 
-cd cantera && git checkout v2.5.1
-
-cd cantera && scons build \
+cd cantera && git checkout v2.5.1 && \
+  scons build \
     CXX=g++ \
     cxx_flags='-std=c++11' \
     CC=gcc \
@@ -58,10 +59,8 @@ cd cantera && scons build \
     versioned_shared_library='yes' \
     use_rpath_linkage='yes' \
     layout='standard' \
-    fast_fail_tests='no'
-
-cd cantera && scons install
-
-rm -rf cantera
+    fast_fail_tests='no' && \
+  scons install && \
+  cd .. && rm -rf cantera
 
 # EOF
