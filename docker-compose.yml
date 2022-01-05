@@ -2,13 +2,13 @@
 version: '3.9'
 
 services:
-  jupyter_hub:
+  jupyter_hub_xyz:
       build:
         context: .
         dockerfile: Dockerfile
         shm_size: ${GPU_SHM_SIZE}
-      image: jupyterhub_gpu
-      container_name: jupyterhub_gpu
+      image: ${IMAGE_NAME}
+      container_name: ${IMAGE_NAME}
       shm_size: ${GPU_SHM_SIZE}
       deploy:
         resources:
@@ -25,5 +25,5 @@ services:
       ports:
         - ${PORT_JUPYTERHUB_URI}:8000
       volumes:
-        - ${PROJECTS_ROOT}/jupyterhub:/home
+        - ${PROJECTS_ROOT}/${IMAGE_NAME}:/home
       command: sh -c "/srv/jupyterhub/make_users.sh && jupyterhub"

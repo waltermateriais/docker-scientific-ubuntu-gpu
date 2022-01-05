@@ -1,6 +1,6 @@
 .env
 /config/jupyterhub_config.py
 /config/make_users.sh
-/config/requirements.txt
-/config/rpkgs.r
+/libs/*.deb
 sandbox
+*.log

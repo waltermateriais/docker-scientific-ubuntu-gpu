@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-rm -rf cantera/
-
-pip install scons
+pip3 install scons
 
 git clone https://github.com/Cantera/cantera.git
 
@@ -15,7 +13,7 @@ cd cantera && git checkout v2.5.1 && \
     libdirname=lib \
     prefix=/opt/cantera/ \
     python_package=full \
-    python_cmd=/usr/bin/python3 \
+    python_cmd=/usr/local/bin/python3 \
     matlab_toolbox='n' \
     matlab_path='' \
     f90_interface='y' \

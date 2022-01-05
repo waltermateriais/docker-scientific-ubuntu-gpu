@@ -4,12 +4,15 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
 
 1. Create and edit `.env` to match the values you expect. The following commented snippet illustrates a possible content of this file with the required variables.:
     ```bash
-    # port to access/expose the hub locally/over a reverse proxy.
-    PORT_JUPYTERHUB_URI=8000
+    # name of image, used to have parallel instances of this service.
+    IMAGE_NAME=jupyterhub_gpu
 
     # mount point of `/home` for physical (local) storage of data
     # (a directory jupyterhub will be created at this location).
     PROJECTS_ROOT=$HOME
+
+    # port to access/expose the hub locally/over a reverse proxy.
+    PORT_JUPYTERHUB_URI=8000
 
     # memory of Nvidia GPU to be used.
     GPU_SHM_SIZE=4gb
@@ -70,6 +73,8 @@ source /usr/lib/openfoam/openfoam2106/etc/bashrc
 
 If deployment with external access is required, a sample Nginx configuration file is provided [here](config/jupyterhub.conf). You need to set your external domain and port number on this file before placing it under `/etc/nginx/conf.d` and running `systemctl reload nginx`. Notice that SSL is not configured and you will need `certbot` to protect your connection.
 
+**NOTE:** check if base image is compatible with local GPU through `cat /proc/driver/nvidia/version` or `nvidia-smi`.
+
 ## Base contents of the container
 
 The following languages/dialects are supported in Notebooks:
@@ -105,3 +110,4 @@ For maintenance of this container in the future consider the following reference
 - https://askubuntu.com/questions/876240
 - https://askubuntu.com/questions/313089
 - https://bugs.openfoam.org/view.php?id=3163
+- https://stackoverflow.com/questions/48767595

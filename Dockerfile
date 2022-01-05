@@ -2,48 +2,226 @@
 # GPU ENABLED JUPYTERHUB AND MASTER SCIENTIFIC ENVIRONMENT
 ##############################################################################
 
-FROM nvidia/cuda:11.4.2-cudnn8-runtime-ubuntu20.04
+FROM ubuntu:18.04
 LABEL authors="Walter Dal'Maz Silva <walter.dalmazsilva@gmail.com>"
 
-ENV TZ=Europe/Paris
+# Define environment to avoid later prompts.
+ENV DEBIAN_FRONTEND  noninteractive
+ENV TZ               Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+# Add base service directory/group.
+RUN groupadd jupyterusers
 RUN mkdir -p /srv/jupyterhub/
 WORKDIR /srv/jupyterhub/
 
+# Ensure base system is up-to-date.
+RUN apt update && apt upgrade -y
+
+# Install Linux basics for build/install.
+RUN apt install -y \
+    build-essential \
+    ca-certificates \
+    locales \
+    dirmngr \
+    gnupg \
+    apt-transport-https \
+    software-properties-common \
+    keyboard-configuration
+
 ##############################################################################
-# GENERAL DEVEL ENVIRONMENT
+# GENERAL CUDA ENVIRONMENT
 ##############################################################################
 
-COPY build/apt.sh /srv/jupyterhub/
-RUN chmod u+x apt.sh && ./apt.sh
+# Note: if migrating to 20.04 add nvidia-cuda-toolkit-gcc
+RUN apt install -y \
+    libnvidia-compute-460 \
+    nvidia-utils-460 \
+    nvidia-cuda-dev \
+    nvidia-cuda-gdb \
+    nvidia-cuda-toolkit
 
+COPY libs/libcudnn8*.deb  /srv/jupyterhub/
+
+RUN apt install -y dpkg                                     && \
+    dpkg -i libcudnn8_8.1.1.33-1+cuda11.2_amd64.deb         && \
+    dpkg -i libcudnn8-dev_8.1.1.33-1+cuda11.2_amd64.deb     && \
+    dpkg -i libcudnn8-samples_8.1.1.33-1+cuda11.2_amd64.deb
+
+##############################################################################
+# COMMON UTILITIES AND LIBRARIES
+##############################################################################
+
+# General Linux utilities.
+RUN apt install -y \
+    bison \
+    rsync \
+    curl \
+    wget \
+    tar \
+    git \
+    htop \
+    vim \
+    ssh
+
+# Base programming environment.
+RUN apt install -y \
+    gcc \
+    g++ \
+    gcc-7 \
+    g++-7 \
+    gfortran \
+    gdb \
+    clang \
+    mpich \
+    make \
+    cmake \
+    cmake-curses-gui \
+    ninja-build \
+    openmpi-common \
+    doxygen
+
+# Graphics/data formats libraries.
+RUN apt install -y \
+    libpng-dev \
+    libtiff5-dev \
+    libcairo2-dev \
+    libpango1.0-dev \
+	libhdf5-dev \
+	libhdf5-openmpi-dev
+
+# Common numerical libraries.
+RUN apt install -y \
+    libblas-dev \
+    liblapack-dev \
+    libopenblas-dev\
+    liblapacke-dev \
+    libgsl-dev \
+    libboost-all-dev \
+    petsc-dev \
+	fftw3-dev
+
+# CGNS packages for CFD.
+RUN apt install -y \
+    cgns-convert \
+    libcgns-dev
+
+# Some high level programming.
+RUN apt install -y \
+    octave \
+    lua5.3 \
+    swig \
+    haskell-platform \
+    texlive-full \
+    sagemath
+
+# Install Haskell Stack.
 RUN curl -sSL https://get.haskellstack.org/ | sh
-RUN python3 -m pip install --upgrade setuptools pip wheel
 
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt install -y nodejs
+# Install recent NodeJS.
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt install -y nodejs
 
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt install -y keyboard-configuration
-
+# Install Modelica.
 RUN echo "deb https://build.openmodelica.org/apt `lsb_release -cs` stable" | \
     tee /etc/apt/sources.list.d/openmodelica.list && \
-    wget -q http://build.openmodelica.org/apt/openmodelica.asc -O- | apt-key add -  && \
+    wget -q http://build.openmodelica.org/apt/openmodelica.asc -O- | apt-key add - && \
     apt-key fingerprint && apt update && apt install -y openmodelica
 
-RUN add-apt-repository ppa:fenics-packages/fenics && \
-    apt update && apt -y install fenics
+# Extra required to build Python.
+RUN apt install -y \
+    zlib1g-dev \
+    libncurses5-dev \
+    libgdbm-dev \
+    libnss3-dev \
+    libssl-dev \
+    libreadline-dev \
+    libffi-dev \
+    libsqlite3-dev \
+    libbz2-dev \
+    liblzma-dev \
+    tk8.6-dev \
+    lzma \
+    lzma-dev \
+    uuid-dev
 
-RUN apt clean
+# Extra required to build R.
+RUN add-apt-repository ppa:openjdk-r/ppa
+RUN apt update && apt install -y \
+    libpcre2-dev \
+    libcurl4-openssl-dev \
+    openjdk-11-jre
+
+##############################################################################
+# OPENFOAM
+##############################################################################
+
+RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
+    wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash && \
+    apt install -y openfoam2112-default
+
+RUN sh -c "wget -O - https://dl.openfoam.org/gpg.key | apt-key add -" && \
+    add-apt-repository http://dl.openfoam.org/ubuntu && \
+    apt update && apt install -y openfoam9
+
+##############################################################################
+# COMPILE LANGUAGES
+##############################################################################
+
+# Build/install Python.
+RUN cd /opt/ && \
+    git clone --recursive https://github.com/python/cpython.git && \
+    cd /opt/cpython && git checkout tags/v3.9.9 && ./configure \
+        --enable-optimizations --with-lto --enable-shared && \
+    make -j 4 && make test && make install
+
+# Build/install R.
+RUN cd /opt/ && \
+    wget https://pbil.univ-lyon1.fr/CRAN/src/base/R-4/R-4.1.2.tar.gz && \
+    tar xzf R-4.1.2.tar.gz && rm -rf R-4.1.2.tar.gz && \
+    cd R-4.1.2 && mkdir build && cd build && \
+    ../configure \
+        --enable-R-shlib \
+        --enable-R-static-lib \
+        --enable-lto \
+        --enable-long-double \
+        --with-lapack \
+        --with-readline \
+        --with-pcre2 \
+    && make all && make install
+
+# Build/install Julia.
+RUN cd /opt/ && \
+    git clone https://github.com/JuliaLang/julia.git && \
+    cd julia && git checkout v1.6.1 && make -j 4 && make install
+
+##############################################################################
+# INSTALL LANGUAGE FEATURES/MORE LANGUAGES
+##############################################################################
+
+# Up-to-date python.
+RUN LD_LIBRARY_PATH=/usr/local/lib/ \
+    python3 -m pip install --upgrade setuptools pip wheel
+
+# Create python environment.
+COPY config/requirements.txt .
+RUN LD_LIBRARY_PATH=/usr/local/lib/ \
+    pip3 install -r requirements.txt && \
+    LD_LIBRARY_PATH=/usr/local/lib/ \
+    python3 -m lua_kernel.install
+
+COPY config/rpkgs.r .
+RUN apt install -y \
+    libxml2-dev && \
+    Rscript rpkgs.r && \
+    R -e 'IRkernel::installspec(user = FALSE)'
 
 ##############################################################################
 # INSTALL JUPYTERHUB
 ##############################################################################
 
-RUN apt remove -y python3-terminado
-RUN npm install -g configurable-http-proxy
-RUN pip install \
+RUN npm install -g configurable-http-proxy && \
+    LD_LIBRARY_PATH=/usr/local/lib/ pip3 install \
     'jupyterhub<2.0.0' \
     ruamel_yaml \
     jupyter \
@@ -51,61 +229,74 @@ RUN pip install \
     jupyterlab \
     voila
 
-# Because of removal of system's python3-terminado.
-RUN apt install -y sagemath
-
 ##############################################################################
 # SIMULATION
 ##############################################################################
 
-RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
-    wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash && \
-    apt install -y openfoam2106-default
+# Install nvtop for monitoring GPU.
+RUN cd /opt/ && \
+    git clone https://github.com/Syllo/nvtop.git && \
+    mkdir -p /opt/nvtop/build && cd /opt/nvtop/build && \
+    cmake .. && make && make install
 
-RUN cd /opt/ && git clone https://github.com/su2code/SU2.git
+# Install FEniCS.
+# XXX: https://fenics.readthedocs.io/en/latest/installation.html
+RUN add-apt-repository ppa:fenics-packages/fenics && \
+    apt update && apt -y install fenics
 
-COPY build/su2.sh /srv/jupyterhub/
-RUN chmod u+x su2.sh && ./su2.sh
+# Install lammps
+# XXX: only for now, later compile it.
+RUN add-apt-repository ppa:gladky-anton/lammps && \
+    add-apt-repository ppa:openkim/latest && \
+    apt update && apt install -y \
+        lammps-stable \
+        lammps-stable-data \
+        openkim-models
 
-COPY build/cantera.sh /srv/jupyterhub/
-RUN chmod u+x cantera.sh && ./cantera.sh
+# Install ESPResSo MD.
+COPY build/espresso.sh .
+COPY config/myconfig-espresso.h .
+RUN chmod +x /srv/jupyterhub/espresso.sh && \
+    LD_LIBRARY_PATH=/usr/local/lib/ ./espresso.sh
+
+# Install SU2.
+COPY build/su2.sh .
+RUN chmod u+x su2.sh && \
+    LD_LIBRARY_PATH=/usr/local/lib/ ./su2.sh
 
 # TODO OpenCalphad: automate Makefile edition.
-COPY build/opencalphad.sh /srv/jupyterhub/
+COPY build/opencalphad.sh .
 RUN cd /opt/ && git clone https://github.com/sundmanbo/opencalphad.git
 
-COPY build/espresso.sh /srv/jupyterhub/
-COPY config/myconfig-espresso.h /srv/jupyterhub/
-RUN chmod +x /srv/jupyterhub/espresso.sh && ./espresso.sh
+# Install Cantera.
+COPY build/cantera.sh .
+RUN chmod u+x cantera.sh && \
+    LD_LIBRARY_PATH=/usr/local/lib/ ./cantera.sh
 
 ##############################################################################
 # JUPYTER WORKING CONDITIONS
 ##############################################################################
 
-COPY config/jupyterhub_config.py /srv/jupyterhub/
+COPY config/jupyterhub_config.py .
 
-COPY config/rpkgs.r /srv/jupyterhub/
-RUN Rscript /srv/jupyterhub/rpkgs.r
-RUN R -e 'IRkernel::installspec(user = FALSE)'
+COPY config/make_users.sh .
+RUN chmod +x make_users.sh
 
-COPY config/requirements.txt /srv/jupyterhub/
-RUN pip install -r requirements.txt
-RUN python3 -m lua_kernel.install
-RUN pip install mpi4py
-
-COPY config/make_users.sh /srv/jupyterhub/
-RUN chmod +x /srv/jupyterhub/make_users.sh
-
-RUN groupadd jupyterusers
 EXPOSE 8000
+EXPOSE 8333
 
-RUN pip install --upgrade jupyterlab jupyterlab-git
-RUN jupyter labextension install jupyterlab-plotly
-RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
-RUN jupyter labextension install @techrah/text-shortcuts
-RUN jupyter labextension install jupyterlab-spreadsheet
-
-RUN pip install \
+# Jupyter extensions.
+RUN LD_LIBRARY_PATH=/usr/local/lib/\
+    pip3 install --upgrade jupyterlab jupyterlab-git
+RUN LD_LIBRARY_PATH=/usr/local/lib/\
+    jupyter labextension install jupyterlab-plotly
+RUN LD_LIBRARY_PATH=/usr/local/lib/\
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
+RUN LD_LIBRARY_PATH=/usr/local/lib/\
+    jupyter labextension install @techrah/text-shortcuts
+RUN LD_LIBRARY_PATH=/usr/local/lib/\
+    jupyter labextension install jupyterlab-spreadsheet
+RUN LD_LIBRARY_PATH=/usr/local/lib/ pip3 install \
     jupyterlab-execute-time \
     jupyterlab-drawio \
     jupyterlab_theme_solarized_dark \
@@ -113,22 +304,57 @@ RUN pip install \
     ipympl \
     lckr-jupyterlab-variableinspector
 
+# Extra libraries for visualization (pyvista)
+RUN apt install -y \
+    libtinfo-dev \
+    libzmq3-dev \
+    libmagic-dev \
+    libgl1-mesa-glx \
+    xvfb \
+    libxt6 \
+    libxrender1 \
+    libxext6 \
+    libgl1-mesa-glx \
+    libqt5widgets5
+
 ##############################################################################
 # PATCHES
 ##############################################################################
 
-RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
-    /usr/local/lib/python3.8/dist-packages/ && \
-    ln -s /opt/cantera/lib/python3.8/site-packages/Cantera-2.5.1-py3.8.egg-info \
-    /usr/local/lib/python3.8/dist-packages/ && \
+RUN ln -s /opt/cantera/lib/python3.9/site-packages/cantera \
+    /usr/local/lib/python3.9/site-packages/ && \
+    ln -s /opt/cantera/lib/python3.9/site-packages/Cantera-2.5.1-py3.9.egg-info \
+    /usr/local/lib/python3.9/site-packages/ && \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
+
+##############################################################################
+# TESTING
+##############################################################################
+
+# Julia/espresso cannot be tested with root user.
+RUN useradd nonroot && \
+    chown -R nonroot:nonroot /opt/julia && \
+    chown -R nonroot:nonroot /opt/espresso/
+
+USER nonroot
+RUN cd /opt/julia && make testall
+RUN cd /opt/espresso/build make check
+
+USER root
+RUN chown -R root:root /opt/julia    && \
+    chown -R root:root /opt/espresso
 
 ##############################################################################
 # ENTRYPOINT
 ##############################################################################
 
-ENTRYPOINT []
+RUN apt clean
+
+# ENTRYPOINT []
 
 ##############################################################################
 # EOF
 ##############################################################################
+
+
+
