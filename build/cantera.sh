@@ -58,7 +58,6 @@ cd cantera && git checkout v2.5.1 && \
     use_rpath_linkage='yes' \
     layout='standard' \
     fast_fail_tests='no' && \
-  scons install && \
-  cd .. && rm -rf cantera
+  scons install
 
 # EOF

@@ -99,5 +99,19 @@ PyFoam
 mpi4py
 #pycalphad
 
+autopep8>=1.5.0
+pycodestyle>=2.5.0
+pylint>=2.4.4
+astroid>=2.3.3
+isort>=4.3.4
+cmake-format>=0.6.11
+pre-commit>=2.15.0
+sphinx>=4.2.0
+sphinx-toggleprompt>=0.0.5
+sphinxcontrib-bibtex>=2.4.1
+scipy>=1.7.1
+MDAnalysis>=1.1.1
+pint
+
 # TODO: check options/details.
 # pyjac

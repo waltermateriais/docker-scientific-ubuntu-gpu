@@ -21,8 +21,6 @@ export LD_LIBRARY_PATH=/opt/SU2/build/subprojects/Mutationpp:\$LD_LIBRARY_PATH
 # Use a ., not source, for sh compatibility.
 . /opt/SU2/bashrc
 
-# CPPFLAGS=$(/usr/local/bin/python3-config --cflags) \
-# LLFLAGS=$(/usr/local/bin/python3-config --ldflags) \
 cd /opt/SU2 && \
 CXXFLAGS='-march=native -mtune=native -funroll-loops' \
 ./meson.py build \

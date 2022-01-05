@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
-# This seems abandoned... not building for now.
-# Apparently not, it is considered *ready* in literature, add it!
-# cd /opt && git clone --recursive git://github.com/scafacos/scafacos.git && \
-# cd scafacos && ./bootstrap && ./configure && make -j 4 && make check && \
-# make install
-
-pip3 install pint
+cd /opt/ && \
+    git clone --recursive https://github.com/scafacos/scafacos.git --branch dipoles && \
+    cd /opt/scafacos && ./bootstrap && ./configure \
+        --enable-shared \
+        --enable-portable-binary \
+        --with-internal-pfft \
+        --with-internal-pnfft \
+        --enable-fcs-solvers=direct,pnfft,p2nfft,p3m \
+        --disable-fcs-fortran \
+        --enable-fcs-dipoles && \
+    make -j `nproc` && \
+    make install
 
 cd /opt/ && \
     git clone --single-branch -b 4.1 https://github.com/espressomd/espresso.git && \
@@ -19,7 +24,8 @@ cd /opt/espresso/build && \
     CC=/usr/bin/gcc-6     \
     CXX=/usr/bin/g++-6    \
     cmake .. &&           \
-    make && make install
+    make -j `nproc` &&    \
+    make install
 
 # Failing!
 # OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 make check

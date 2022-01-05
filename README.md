@@ -14,6 +14,12 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
     # port to access/expose the hub locally/over a reverse proxy.
     PORT_JUPYTERHUB_URI=8000
 
+    # port allow gogs access through ssh.
+    PORT_GOGS_SSH=22
+
+    # port to access/expose gogs locally/over a reverse proxy.
+    PORT_GOGS_HTTPS=3000
+
     # memory of Nvidia GPU to be used.
     GPU_SHM_SIZE=4gb
     ```

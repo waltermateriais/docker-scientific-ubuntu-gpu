@@ -6,8 +6,10 @@ FROM ubuntu:18.04
 LABEL authors="Walter Dal'Maz Silva <walter.dalmazsilva@gmail.com>"
 
 # Define environment to avoid later prompts.
-ENV DEBIAN_FRONTEND  noninteractive
-ENV TZ               Europe/Paris
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+ENV DEBIAN_FRONTEND noninteractive
+ENV TZ Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Add base service directory/group.
@@ -52,68 +54,100 @@ RUN apt install -y dpkg                                     && \
 # COMMON UTILITIES AND LIBRARIES
 ##############################################################################
 
-# General Linux utilities.
-RUN apt install -y \
-    bison \
-    rsync \
-    curl \
-    wget \
-    tar \
-    git \
-    htop \
-    vim \
-    ssh
+# Extra required to build R.
+RUN add-apt-repository ppa:openjdk-r/ppa
 
-# Base programming environment.
-RUN apt install -y \
-    gcc \
-    g++ \
-    gcc-7 \
-    g++-7 \
-    gfortran \
-    gdb \
-    clang \
-    mpich \
-    make \
+# General Linux utilities.
+RUN apt update && apt install -y \
+    apt-utils \
+    autoconf \
+    automake \
+    bison \
+    ccache \
+    cgns-convert \
+    clang-9 \
+    clang-format-9 \
+    clang-tidy-9 \
     cmake \
     cmake-curses-gui \
-    ninja-build \
-    openmpi-common \
-    doxygen
-
-# Graphics/data formats libraries.
-RUN apt install -y \
-    libpng-dev \
-    libtiff5-dev \
-    libcairo2-dev \
-    libpango1.0-dev \
-	libhdf5-dev \
-	libhdf5-openmpi-dev
-
-# Common numerical libraries.
-RUN apt install -y \
-    libblas-dev \
-    liblapack-dev \
-    libopenblas-dev\
-    liblapacke-dev \
-    libgsl-dev \
-    libboost-all-dev \
-    petsc-dev \
-	fftw3-dev
-
-# CGNS packages for CFD.
-RUN apt install -y \
-    cgns-convert \
-    libcgns-dev
-
-# Some high level programming.
-RUN apt install -y \
-    octave \
-    lua5.3 \
-    swig \
+    curl \
+    doxygen \
+    fftw3-dev \
+    g++ \
+    g++-7 \
+    gcc \
+    gcc-7 \
+    gdb \
+    gfortran \
+    git \
+    graphviz \
     haskell-platform \
+    htop \
+    jq \
+    lcov \
+    libblas-dev \
+    libboost-all-dev \
+    libbz2-dev \
+    libcairo2-dev \
+    libcgns-dev \
+    libcurl4-openssl-dev \
+    libffi-dev \
+    libfftw3-dev \
+    libgdbm-dev \
+    libgl1-mesa-glx \
+    libgl1-mesa-glx \
+    libgsl-dev \
+    libhdf5-dev \
+    libhdf5-openmpi-dev \
+    liblapack-dev \
+    liblapacke-dev \
+    liblzma-dev \
+    libmagic-dev \
+    libncurses5-dev \
+    libnss3-dev \
+    libopenblas-dev \
+    libopenmpi-dev \
+    libpango1.0-dev \
+    libpcre2-dev \
+    libpng-dev \
+    libqt5widgets5 \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libthrust-dev \
+    libtiff5-dev \
+    libtinfo-dev \
+    libtool \
+    libxext6 \
+    libxml2-dev \
+    libxrender1 \
+    libxt6 \
+    libzmq3-dev \
+    lua5.3 \
+    lzma \
+    lzma-dev \
+    make \
+    mpich \
+    ninja-build \
+    octave \
+    openjdk-11-jre \
+    openmpi-bin \
+    openmpi-common \
+    openssh-client \
+    petsc-dev \
+    pkg-config \
+    rsync \
+    sagemath \
+    ssh \
+    swig \
+    tar \
     texlive-full \
-    sagemath
+    tk8.6-dev \
+    uuid-dev \
+    vim \
+    wget \
+    xvfb \
+    zlib1g-dev
 
 # Install Haskell Stack.
 RUN curl -sSL https://get.haskellstack.org/ | sh
@@ -127,30 +161,6 @@ RUN echo "deb https://build.openmodelica.org/apt `lsb_release -cs` stable" | \
     tee /etc/apt/sources.list.d/openmodelica.list && \
     wget -q http://build.openmodelica.org/apt/openmodelica.asc -O- | apt-key add - && \
     apt-key fingerprint && apt update && apt install -y openmodelica
-
-# Extra required to build Python.
-RUN apt install -y \
-    zlib1g-dev \
-    libncurses5-dev \
-    libgdbm-dev \
-    libnss3-dev \
-    libssl-dev \
-    libreadline-dev \
-    libffi-dev \
-    libsqlite3-dev \
-    libbz2-dev \
-    liblzma-dev \
-    tk8.6-dev \
-    lzma \
-    lzma-dev \
-    uuid-dev
-
-# Extra required to build R.
-RUN add-apt-repository ppa:openjdk-r/ppa
-RUN apt update && apt install -y \
-    libpcre2-dev \
-    libcurl4-openssl-dev \
-    openjdk-11-jre
 
 ##############################################################################
 # OPENFOAM
@@ -173,7 +183,7 @@ RUN cd /opt/ && \
     git clone --recursive https://github.com/python/cpython.git && \
     cd /opt/cpython && git checkout tags/v3.9.9 && ./configure \
         --enable-optimizations --with-lto --enable-shared && \
-    make -j 4 && make test && make install
+    make -j 4 && make test && make install && ldconfig
 
 # Build/install R.
 RUN cd /opt/ && \
@@ -211,9 +221,7 @@ RUN LD_LIBRARY_PATH=/usr/local/lib/ \
     python3 -m lua_kernel.install
 
 COPY config/rpkgs.r .
-RUN apt install -y \
-    libxml2-dev && \
-    Rscript rpkgs.r && \
+RUN Rscript rpkgs.r && \
     R -e 'IRkernel::installspec(user = FALSE)'
 
 ##############################################################################
@@ -274,50 +282,6 @@ RUN chmod u+x cantera.sh && \
     LD_LIBRARY_PATH=/usr/local/lib/ ./cantera.sh
 
 ##############################################################################
-# JUPYTER WORKING CONDITIONS
-##############################################################################
-
-COPY config/jupyterhub_config.py .
-
-COPY config/make_users.sh .
-RUN chmod +x make_users.sh
-
-EXPOSE 8000
-EXPOSE 8333
-
-# Jupyter extensions.
-RUN LD_LIBRARY_PATH=/usr/local/lib/\
-    pip3 install --upgrade jupyterlab jupyterlab-git
-RUN LD_LIBRARY_PATH=/usr/local/lib/\
-    jupyter labextension install jupyterlab-plotly
-RUN LD_LIBRARY_PATH=/usr/local/lib/\
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
-RUN LD_LIBRARY_PATH=/usr/local/lib/\
-    jupyter labextension install @techrah/text-shortcuts
-RUN LD_LIBRARY_PATH=/usr/local/lib/\
-    jupyter labextension install jupyterlab-spreadsheet
-RUN LD_LIBRARY_PATH=/usr/local/lib/ pip3 install \
-    jupyterlab-execute-time \
-    jupyterlab-drawio \
-    jupyterlab_theme_solarized_dark \
-    jupyter_bokeh \
-    ipympl \
-    lckr-jupyterlab-variableinspector
-
-# Extra libraries for visualization (pyvista)
-RUN apt install -y \
-    libtinfo-dev \
-    libzmq3-dev \
-    libmagic-dev \
-    libgl1-mesa-glx \
-    xvfb \
-    libxt6 \
-    libxrender1 \
-    libxext6 \
-    libgl1-mesa-glx \
-    libqt5widgets5
-
-##############################################################################
 # PATCHES
 ##############################################################################
 
@@ -328,29 +292,57 @@ RUN ln -s /opt/cantera/lib/python3.9/site-packages/cantera \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
 
 ##############################################################################
+# JUPYTER WORKING CONDITIONS
+##############################################################################
+
+# Jupyter extensions.
+RUN pip3 install --upgrade jupyterlab jupyterlab-git
+RUN jupyter labextension install jupyterlab-plotly
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
+RUN jupyter labextension install @techrah/text-shortcuts
+RUN jupyter labextension install jupyterlab-spreadsheet
+RUN pip3 install \
+    jupyterlab-execute-time \
+    jupyterlab-drawio \
+    jupyterlab_theme_solarized_dark \
+    jupyter_bokeh \
+    ipympl \
+    lckr-jupyterlab-variableinspector
+
+COPY config/jupyterhub_config.py .
+
+##############################################################################
 # TESTING
 ##############################################################################
 
 # Julia/espresso cannot be tested with root user.
-RUN useradd nonroot && \
-    chown -R nonroot:nonroot /opt/julia && \
-    chown -R nonroot:nonroot /opt/espresso/
+# RUN useradd -m -s /bin/bash -G jupyterusers nonroot
 
-USER nonroot
-RUN cd /opt/julia && make testall
-RUN cd /opt/espresso/build make check
+# RUN chown -R nonroot:nonroot /opt/espresso
+# USER nonroot
+# RUN cd /opt/espresso/build && make check
+# USER root
+# RUN chown -R root:root /opt/espresso
 
-USER root
-RUN chown -R root:root /opt/julia    && \
-    chown -R root:root /opt/espresso
+# RUN chown -R nonroot:nonroot /opt/julia
+# USER nonroot
+# RUN cd /opt/julia && make testall
+# USER root
+# RUN chown -R root:root /opt/julia
 
 ##############################################################################
 # ENTRYPOINT
 ##############################################################################
 
+COPY config/make_users.sh .
+RUN chmod +x make_users.sh
+
+EXPOSE 8000
+EXPOSE 8333
+
 RUN apt clean
 
-# ENTRYPOINT []
+ENTRYPOINT []
 
 ##############################################################################
 # EOF
