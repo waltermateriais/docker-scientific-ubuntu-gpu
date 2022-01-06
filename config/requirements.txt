@@ -93,6 +93,9 @@ jupyter-console>=6.1.0
 jupyter-core>=4.6.3
 nbconvert>=6.0
 notebook>=6.4.1
+ruamel_yaml
+jupyterlab
+voila
 
 gmsh>=4.9.1
 PyFoam
@@ -112,6 +115,8 @@ sphinxcontrib-bibtex>=2.4.1
 scipy>=1.7.1
 MDAnalysis>=1.1.1
 pint
+
+scons
 
 # TODO: check options/details.
 # pyjac

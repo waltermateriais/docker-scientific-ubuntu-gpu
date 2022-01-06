@@ -24,9 +24,6 @@ services:
                 capabilities: [gpu]
       restart: always
       runtime: nvidia
-      environment:
-        NVIDIA_VISIBLE_DEVICES: all
-        NVIDIA_DRIVER_CAPABILITIES: compute,utility
       ports:
         - ${PORT_JUPYTERHUB_URI}:8000
       volumes:

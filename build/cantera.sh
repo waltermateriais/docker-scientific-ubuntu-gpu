@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-pip3 install scons
-
 git clone https://github.com/Cantera/cantera.git
 
 cd cantera && git checkout v2.5.1 && \
@@ -58,6 +56,7 @@ cd cantera && git checkout v2.5.1 && \
     use_rpath_linkage='yes' \
     layout='standard' \
     fast_fail_tests='no' && \
-  scons install
+  scons install && \
+  cd .. && rm -rf cantera
 
 # EOF

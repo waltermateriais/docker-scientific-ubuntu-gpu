@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-cd /opt/ && \
+cd /tmp/ && \
     git clone --recursive https://github.com/scafacos/scafacos.git --branch dipoles && \
-    cd /opt/scafacos && ./bootstrap && ./configure \
+    cd /tmp/scafacos && ./bootstrap && ./configure \
         --enable-shared \
         --enable-portable-binary \
         --with-internal-pfft \
@@ -11,21 +11,23 @@ cd /opt/ && \
         --disable-fcs-fortran \
         --enable-fcs-dipoles && \
     make -j `nproc` && \
-    make install
+    make install && \
+    rm -rf /tmp/scafacos
 
-cd /opt/ && \
+cd /tmp/ && \
     git clone --single-branch -b 4.1 https://github.com/espressomd/espresso.git && \
-    cd /opt/espresso/ && mkdir build
+    cd /tmp/espresso/ && mkdir build
 
 # This file must be copied in Dockerfile.
-cp /srv/jupyterhub/myconfig-espresso.h /opt/espresso/build/myconfig.h
+cp /srv/jupyterhub/myconfig-espresso.h /tmp/espresso/build/myconfig.h
 
-cd /opt/espresso/build && \
-    CC=/usr/bin/gcc-6     \
-    CXX=/usr/bin/g++-6    \
+cd /tmp/espresso/build && \
+    CC=/usr/bin/gcc-7     \
+    CXX=/usr/bin/g++-7    \
     cmake .. &&           \
     make -j `nproc` &&    \
-    make install
+    make install &&       \
+    rm -rf /tmp/espresso/
 
 # Failing!
 # OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 make check
