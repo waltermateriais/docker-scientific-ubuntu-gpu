@@ -2,5 +2,7 @@
 /config/jupyterhub_config.py
 /config/make_users.sh
 /libs/*.deb
+/nginx/*
 sandbox
 *.log
+build.sh
