@@ -160,7 +160,7 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub && \
     add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" && \
     apt-get update && \
-    apt-get install -y nvidia-kernel-source-460 && \
+    apt-get install -y nvidia-kernel-source-470 && \
     apt-get install -y \
         cuda \
         nvidia-cuda-toolkit
@@ -178,7 +178,7 @@ RUN cd /tmp/ && apt-get install -y dpkg                     && \
 
 RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
     wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash && \
-    apt install -y openfoam2112-default
+    apt update && apt install -y openfoam2112-default
 
 RUN sh -c "wget -O - https://dl.openfoam.org/gpg.key | apt-key add -" && \
     add-apt-repository http://dl.openfoam.org/ubuntu && \
@@ -245,6 +245,26 @@ RUN Rscript rpkgs.r && \
     R -e 'IRkernel::installspec(user = FALSE)'
 
 ##############################################################################
+# JUPYTER WORKING CONDITIONS
+##############################################################################
+
+# Jupyter extensions.
+RUN pip3 install --upgrade jupyterlab jupyterlab-git
+RUN jupyter labextension install jupyterlab-plotly
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
+RUN jupyter labextension install @techrah/text-shortcuts
+RUN jupyter labextension install jupyterlab-spreadsheet
+RUN pip3 install \
+    jupyterlab-execute-time \
+    jupyterlab-drawio \
+    jupyterlab_theme_solarized_dark \
+    jupyter_bokeh \
+    ipympl \
+    lckr-jupyterlab-variableinspector
+
+COPY config/jupyterhub_config.py .
+
+##############################################################################
 # SIMULATION
 ##############################################################################
 
@@ -300,26 +320,6 @@ RUN ln -s /opt/cantera/lib/python3.9/site-packages/cantera \
 # pip installation. XXX: remove sagemath from top install list.
 RUN apt remove -y python3-terminado
 RUN apt install -y sagemath
-
-##############################################################################
-# JUPYTER WORKING CONDITIONS
-##############################################################################
-
-# Jupyter extensions.
-RUN pip3 install --upgrade jupyterlab jupyterlab-git
-RUN jupyter labextension install jupyterlab-plotly
-RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
-RUN jupyter labextension install @techrah/text-shortcuts
-RUN jupyter labextension install jupyterlab-spreadsheet
-RUN pip3 install \
-    jupyterlab-execute-time \
-    jupyterlab-drawio \
-    jupyterlab_theme_solarized_dark \
-    jupyter_bokeh \
-    ipympl \
-    lckr-jupyterlab-variableinspector
-
-COPY config/jupyterhub_config.py .
 
 ##############################################################################
 # TESTING
