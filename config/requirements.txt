@@ -98,6 +98,7 @@ jupyterlab
 voila
 
 gmsh>=4.9.1
+meshio
 PyFoam
 mpi4py
 #pycalphad
