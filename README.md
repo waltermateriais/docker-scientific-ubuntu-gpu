@@ -12,7 +12,7 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
         rm -rf /tmp/libcudnn8*11.2*.deb
     ```
 
-1. Create and edit `.env` to match the values you expect. The following commented snippet illustrates a possible content of this file with the required variables.:
+1. Create and edit `.env` to match the values you expect. The following commented snippet illustrates a possible content of this file with the required variables. A sample file is provided as [.env.sample](./.env.sample).
     ```bash
     # name of image, used to have parallel instances of this service.
     IMAGE_NAME=jupyterhub_gpu
@@ -35,20 +35,24 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
     ```
 
 1. Under `config` add the following files:
-    - jupyterhub_config.py: configuration file as described [here](https://jupyterhub.readthedocs.io/en/stable/reference/config-reference.html). For version 1.5.0 of JupyterHub, the following snippet would create a PAM authentication system (the simplest one) with a single user called `user`.
+
+    - jupyterhub_config.py: configuration file as described [here](https://jupyterhub.readthedocs.io/en/stable/reference/config-reference.html). For version 1.5.0 of JupyterHub, the following snippet would create a PAM authentication system (the simplest one) with a single user called `user`. A sample file is provided as [config/jupyterhub_config.sample.py](./config/jupyterhub_config.sample.py).
     ```python
     c.JupyterHub.bind_url = 'http://0.0.0.0:8000/'
     c.Authenticator.admin_users = {'user'}
     c.Authenticator.allowed_users = {'user'}
     c.LocalAuthenticator.create_system_users = True
     ```
+
     - make_users.sh: script for adding users, setting passwords and rights. Notice that `jupyterhub_config.py` will not really create the users. This has to be done through the script `make_users.sh`. For creating a single `user` with password `SecretPass*1234` under the group `jupyterusers` (already created in Dockerfile) the following content could be added to this script:
     ```bash
     useradd -m -s /bin/bash -G jupyterusers user
     echo 'user:SecretPass*1234' | chpasswd
     ```
-    - requirements.txt: typical `pip` file with Python packages to install following the directives provided [here](https://pip.pypa.io/en/stable/cli/pip_install/#requirement-specifiers).
-    - rpkgs.r: an R-script managing the installation of required R packages. A sample script is provided below, where you are supposed to populate list `packages` to install all the globally installed packages in your environment. Notice the function `pkgLoad` is called in the end of script.
+
+    - requirements.txt: typical `pip` file with Python packages to install following the directives provided [here](https://pip.pypa.io/en/stable/cli/pip_install/#requirement-specifiers). A sample file is provided as [config/requirements.txt](./config/requirements.txt).
+
+    - rpkgs.r: an R-script managing the installation of required R packages. A sample script is provided below, where you are supposed to populate list `packages` to install all the globally installed packages in your environment. Notice the function `pkgLoad` is called in the end of script. A sample file is provided as [config/rpkgs.r](./config/rpkgs.r).
     ```R
     pkgLoad <- function()
     {
