@@ -2,6 +2,9 @@
 # Add a line `source ${HOME}/bashrc` to the end of .bashrc.
 # Follow the instructions below to enable some software.
 
+# Support parallelism.
+export OMPI_MCA_btl_vader_single_copy_mechanism=none
+
 # It is generally usefull to have this for many reasons.
 export PATH="${HOME}/.local/bin:${PATH}"
 

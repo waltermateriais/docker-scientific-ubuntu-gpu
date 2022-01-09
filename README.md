@@ -78,18 +78,13 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
 
 1. After filling all the files run `docker-compose up --build` or `docker-compose up -d`, as required.
 
-1. Neither `OpenFOAM` or `SU2` are placed by default on the path of newly added users. To have these software available one can add the following lines to their `.bashrc` or simply source them when required:
-
-```bash
-source /opt/SU2/bashrc
-source /usr/lib/openfoam/openfoam2106/etc/bashrc
-```
-
-1. Currently you need to `export OMPI_MCA_btl_vader_single_copy_mechanism=none` to be able to use MPI.
+1. Follow instructions under [config](./config) for making different packages available.
 
 If deployment with external access is required, a sample Nginx configuration file is provided [here](config/jupyterhub.conf). You need to set your external domain and port number on this file before placing it under `/etc/nginx/conf.d` and running `systemctl reload nginx`. Notice that SSL is not configured and you will need `certbot` to protect your connection.
 
 **NOTE:** check if base image is compatible with local GPU through `cat /proc/driver/nvidia/version` or `nvidia-smi`.
+
+---
 
 ## Base contents of the container
 
@@ -101,7 +96,7 @@ The following languages/dialects are supported in Notebooks:
 - SageMath
 - R
 
-The following languages are installed, users must add their kernels:
+The following languages are installed, users must add their own kernels:
 
 - Julia
 - Haskell
@@ -111,7 +106,8 @@ For general CLI development only there is also:
 - C/C++
 - Fortran
 - NodeJS
-- Rust (TODO: ensure automation of install for all users)
+
+---
 
 ## References
 

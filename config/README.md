@@ -61,6 +61,8 @@ source /opt/SU2/bashrc
 ```
 ---
 
+Currently you need to `export OMPI_MCA_btl_vader_single_copy_mechanism=none` to be able to use MPI.
+
 ## Other simulation tools
 
 The following tools are also available in the service:
