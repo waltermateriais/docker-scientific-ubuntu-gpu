@@ -117,6 +117,9 @@ RUN apt update && \
         make \
         mpich \
         ninja-build \
+        python3 \
+        python3-dev \
+        python3-pip \
         octave \
         openjdk-11-jre \
         openmpi-bin \
@@ -126,7 +129,6 @@ RUN apt update && \
         pkg-config \
         r-base \
         rsync \
-        sagemath \
         ssh \
         swig \
         tar \
@@ -160,7 +162,7 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub && \
     add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" && \
     apt-get update && \
-    apt-get install -y nvidia-kernel-source-470 && \
+    apt-get install -y nvidia-kernel-source-460 && \
     apt-get install -y \
         cuda \
         nvidia-cuda-toolkit
@@ -183,15 +185,6 @@ RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
 RUN sh -c "wget -O - https://dl.openfoam.org/gpg.key | apt-key add -" && \
     add-apt-repository http://dl.openfoam.org/ubuntu && \
     apt update && apt install -y openfoam9
-
-##############################################################################
-# COMPILE LANGUAGES
-##############################################################################
-
-RUN apt install -y \
-    python3 \
-    python3-all-dev \
-    python3-pip
 
 ##############################################################################
 # INSTALL LANGUAGE FEATURES/MORE LANGUAGES
