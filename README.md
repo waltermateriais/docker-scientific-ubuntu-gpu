@@ -2,6 +2,16 @@
 
 This repository provides a Docker environment consisting of a mixture of Data Science and CFD. The environment aims at serving JupyterHub with access to GPU and also allow OpenFOAM and SU2 from that platform. It is built to be an all-in-one system, with several scientific environments and languages available. To have it working some files need to be created and prepared before running `docker-compose` to create the environment.
 
+0. Download compatible cudann libraries under `libs` directory and edit the following lines of [Dockerfile](./Dockerfile) for compatibility. You might also need to change `nvidia-kernel-source-470` to match your base OS driver.
+    ```docker
+    COPY libs/libcudnn8*11.2*.deb  /tmp/
+    RUN cd /tmp/ && apt-get install -y dpkg                     && \
+        dpkg -i libcudnn8_8.1.1.33-1+cuda11.2_amd64.deb         && \
+        dpkg -i libcudnn8-dev_8.1.1.33-1+cuda11.2_amd64.deb     && \
+        dpkg -i libcudnn8-samples_8.1.1.33-1+cuda11.2_amd64.deb && \
+        rm -rf /tmp/libcudnn8*11.2*.deb
+    ```
+
 1. Create and edit `.env` to match the values you expect. The following commented snippet illustrates a possible content of this file with the required variables.:
     ```bash
     # name of image, used to have parallel instances of this service.

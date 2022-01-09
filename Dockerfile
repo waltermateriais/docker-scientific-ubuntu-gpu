@@ -188,20 +188,30 @@ RUN sh -c "wget -O - https://dl.openfoam.org/gpg.key | apt-key add -" && \
 # COMPILE LANGUAGES
 ##############################################################################
 
+RUN apt install -y \
+    python3 \
+    python3-all-dev \
+    python3-pip
+
+# These are incompatible, terminado by here was already made available by
+# pip installation. XXX: remove sagemath from top install list.
+RUN apt remove -y python3-terminado
+RUN apt install -y sagemath
+
 # Build/install Python.
-RUN cd /tmp/ && \
-    git clone --recursive https://github.com/python/cpython.git && \
-    cd /tmp/cpython && \
-    git checkout tags/v3.9.9 && \
-    ./configure \
-        --enable-optimizations \
-        --with-lto \
-        --enable-shared && \
-    make -j `nproc` && \
-    make test && \
-    make install && \
-    ldconfig && \
-    rm -rf /tmp/cpython
+# RUN cd /tmp/ && \
+#     git clone --recursive https://github.com/python/cpython.git && \
+#     cd /tmp/cpython && \
+#     git checkout tags/v3.8.12 && \
+#     ./configure \
+#         --enable-optimizations \
+#         --with-lto \
+#         --enable-shared && \
+#     make -j `nproc` && \
+#     make test && \
+#     make install && \
+#     ldconfig && \
+#     rm -rf /tmp/cpython
 
 # # Build/install R.
 # RUN cd /opt/ && \
@@ -269,18 +279,19 @@ COPY config/jupyterhub_config.py .
 ##############################################################################
 
 # Install nvtop for monitoring GPU.
-RUN cd /tmp/ && \
-    git clone https://github.com/Syllo/nvtop.git && \
-    mkdir -p /tmp/nvtop/build && cd /tmp/nvtop/build && \
-    cmake .. && make && make install && \
-    rm -rf /tmp/nvtop/
+RUN apt install -y nvtop
+# RUN cd /tmp/ && \
+#     git clone https://github.com/Syllo/nvtop.git && \
+#     mkdir -p /tmp/nvtop/build && cd /tmp/nvtop/build && \
+#     cmake .. && make && make install && \
+#     rm -rf /tmp/nvtop/
 
 # Install FEniCS.
 # XXX: https://fenics.readthedocs.io/en/latest/installation.html
 RUN add-apt-repository ppa:fenics-packages/fenics && \
     apt update && apt -y install fenics
 
-# Install lammps
+# Install lammps docker-scientific-ubuntu-gpu
 # XXX: only for now, later compile it.
 RUN add-apt-repository ppa:gladky-anton/lammps && \
     add-apt-repository ppa:openkim/latest && \
@@ -310,16 +321,11 @@ RUN chmod u+x cantera.sh && ./cantera.sh
 # PATCHES
 ##############################################################################
 
-RUN ln -s /opt/cantera/lib/python3.9/site-packages/cantera \
-    /usr/local/lib/python3.9/site-packages/ && \
-    ln -s /opt/cantera/lib/python3.9/site-packages/Cantera-2.5.1-py3.9.egg-info \
-    /usr/local/lib/python3.9/site-packages/ && \
+RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
+    /usr/local/lib/python3.8/site-packages/ && \
+    ln -s /opt/cantera/lib/python3.8/site-packages/Cantera-2.5.1-py3.8.egg-info \
+    /usr/local/lib/python3.8/site-packages/ && \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
-
-# These are incompatible, terminado by here was already made available by
-# pip installation. XXX: remove sagemath from top install list.
-RUN apt remove -y python3-terminado
-RUN apt install -y sagemath
 
 ##############################################################################
 # TESTING
