@@ -193,46 +193,6 @@ RUN apt install -y \
     python3-all-dev \
     python3-pip
 
-# These are incompatible, terminado by here was already made available by
-# pip installation. XXX: remove sagemath from top install list.
-RUN apt remove -y python3-terminado
-RUN apt install -y sagemath
-
-# Build/install Python.
-# RUN cd /tmp/ && \
-#     git clone --recursive https://github.com/python/cpython.git && \
-#     cd /tmp/cpython && \
-#     git checkout tags/v3.8.12 && \
-#     ./configure \
-#         --enable-optimizations \
-#         --with-lto \
-#         --enable-shared && \
-#     make -j `nproc` && \
-#     make test && \
-#     make install && \
-#     ldconfig && \
-#     rm -rf /tmp/cpython
-
-# # Build/install R.
-# RUN cd /opt/ && \
-#     wget https://pbil.univ-lyon1.fr/CRAN/src/base/R-4/R-4.1.2.tar.gz && \
-#     tar xzf R-4.1.2.tar.gz && rm -rf R-4.1.2.tar.gz && \
-#     cd R-4.1.2 && mkdir build && cd build && \
-#     ../configure \
-#         --enable-R-shlib \
-#         --enable-R-static-lib \
-#         --enable-lto \
-#         --enable-long-double \
-#         --with-lapack \
-#         --with-readline \
-#         --with-pcre2 \
-#     && make all && make install
-
-# # Build/install Julia.
-# RUN cd /opt/ && \
-#     git clone https://github.com/JuliaLang/julia.git && \
-#     cd julia && git checkout v1.6.1 && make -j `nproc` && make install
-
 ##############################################################################
 # INSTALL LANGUAGE FEATURES/MORE LANGUAGES
 ##############################################################################
@@ -242,13 +202,18 @@ RUN python3 -m pip install --upgrade setuptools pip wheel
 
 # Create python environment.
 COPY config/requirements.txt .
-RUN npm install -g configurable-http-proxy && \
+RUN apt remove -y python3-terminado && \
     pip3 install -r requirements.txt && \
     python3 -m lua_kernel.install && \
     rm -rf requirements.txt
 
-# Install Jupyterhub.
-RUN pip3 install 'jupyterhub<2.0.0'
+# Incompatible with terminado, by here it is already made available by pip.
+# XXX: remove sagemath from top install list.
+RUN apt install -y sagemath
+
+# # Install Jupyterhub.
+RUN npm install -g configurable-http-proxy && \
+    pip3 install 'jupyterhub<2.0.0'
 
 COPY config/rpkgs.r .
 RUN Rscript rpkgs.r && \
@@ -280,11 +245,6 @@ COPY config/jupyterhub_config.py .
 
 # Install nvtop for monitoring GPU.
 RUN apt install -y nvtop
-# RUN cd /tmp/ && \
-#     git clone https://github.com/Syllo/nvtop.git && \
-#     mkdir -p /tmp/nvtop/build && cd /tmp/nvtop/build && \
-#     cmake .. && make && make install && \
-#     rm -rf /tmp/nvtop/
 
 # Install FEniCS.
 # XXX: https://fenics.readthedocs.io/en/latest/installation.html
@@ -328,38 +288,6 @@ RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
 
 ##############################################################################
-# TESTING
-##############################################################################
-
-# Julia/espresso cannot be tested with root user.
-# RUN useradd -m -s /bin/bash -G jupyterusers nonroot
-
-# RUN chown -R nonroot:nonroot /opt/espresso
-# USER nonroot
-# RUN cd /opt/espresso/build && make check
-# USER root
-# RUN chown -R root:root /opt/espresso
-
-# RUN chown -R nonroot:nonroot /opt/julia
-# USER nonroot
-# RUN cd /opt/julia && make testall
-# USER root
-# RUN chown -R root:root /opt/julia
-
-##############################################################################
-# PATCHES
-##############################################################################
-
-# This actually removes the GPU support.
-# RUN apt-get install -y \
-#     libnvidia-compute-460 \
-#     nvidia-utils-460 \
-#     nvidia-cuda-dev \
-#     nvidia-cuda-gdb \
-#     nvidia-cuda-toolkit \
-#     nvidia-cuda-toolkit-gcc
-
-##############################################################################
 # ENTRYPOINT
 ##############################################################################
 
@@ -378,6 +306,3 @@ ENTRYPOINT []
 ##############################################################################
 # EOF
 ##############################################################################
-
-
-
