@@ -44,7 +44,7 @@ This repository provides a Docker environment consisting of a mixture of Data Sc
     c.LocalAuthenticator.create_system_users = True
     ```
 
-    - make_users.sh: script for adding users, setting passwords and rights. Notice that `jupyterhub_config.py` will not really create the users. This has to be done through the script `make_users.sh`. For creating a single `user` with password `SecretPass*1234` under the group `jupyterusers` (already created in Dockerfile) the following content could be added to this script:
+    - make_users.sh: script for adding users, setting passwords and rights. Notice that `jupyterhub_config.py` will not really create the users. This has to be done through the script `make_users.sh`. For creating a single `user` with password `SecretPass*1234` under the group `jupyterusers` (already created in Dockerfile) the following content could be added to this script. A sample file is provided as [config/make_users.sample.sh](./config/make_users.sample.sh).
     ```bash
     useradd -m -s /bin/bash -G jupyterusers user
     echo 'user:SecretPass*1234' | chpasswd
