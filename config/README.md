@@ -59,9 +59,10 @@ for OpenFOAM v9 (ORG), which is expected to be sourced from a terminal or notebo
 ```bash
 source /opt/SU2/bashrc
 ```
----
 
 Currently you need to `export OMPI_MCA_btl_vader_single_copy_mechanism=none` to be able to use MPI.
+
+---
 
 ## Other simulation tools
 
