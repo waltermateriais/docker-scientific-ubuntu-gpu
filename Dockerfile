@@ -117,9 +117,6 @@ RUN apt update && \
         make \
         mpich \
         ninja-build \
-        python3 \
-        python3-dev \
-        python3-pip \
         octave \
         openjdk-11-jre \
         openmpi-bin \
@@ -139,19 +136,6 @@ RUN apt update && \
         wget \
         xvfb \
         zlib1g-dev
-
-# Install Haskell Stack.
-RUN curl -sSL https://get.haskellstack.org/ | sh
-
-# Install recent NodeJS.
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt install -y nodejs
-
-# Install Modelica.
-RUN echo "deb https://build.openmodelica.org/apt `lsb_release -cs` stable" | \
-    tee /etc/apt/sources.list.d/openmodelica.list && \
-    wget -q http://build.openmodelica.org/apt/openmodelica.asc -O- | apt-key add - && \
-    apt-key fingerprint && apt update && apt install -y openmodelica
 
 ##############################################################################
 # GENERAL CUDA ENVIRONMENT
@@ -174,21 +158,26 @@ RUN cd /tmp/ && apt-get install -y dpkg                     && \
     dpkg -i libcudnn8-samples_8.1.1.33-1+cuda11.2_amd64.deb && \
     rm -rf /tmp/libcudnn8*11.2*.deb
 
-##############################################################################
-# OPENFOAM
-##############################################################################
-
-RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
-    wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash && \
-    apt update && apt install -y openfoam2112-default
-
-RUN sh -c "wget -O - https://dl.openfoam.org/gpg.key | apt-key add -" && \
-    add-apt-repository http://dl.openfoam.org/ubuntu && \
-    apt update && apt install -y openfoam9
+# Install nvtop for monitoring GPU.
+RUN apt install -y nvtop
 
 ##############################################################################
 # INSTALL LANGUAGE FEATURES/MORE LANGUAGES
 ##############################################################################
+
+RUN cd /tmp/ && \
+    git clone --recursive https://github.com/python/cpython.git && \
+    cd /tmp/cpython && \
+    git checkout tags/v3.8.12 && \
+    ./configure \
+        --enable-optimizations \
+        --with-lto \
+        --enable-shared && \
+    make -j `nproc` && \
+    make test && \
+    make install && \
+    ldconfig && \
+    rm -rf /tmp/cpython
 
 # Up-to-date python.
 RUN python3 -m pip install --upgrade setuptools pip wheel
@@ -200,23 +189,20 @@ RUN apt remove -y python3-terminado && \
     python3 -m lua_kernel.install && \
     rm -rf requirements.txt
 
-# Incompatible with terminado, by here it is already made available by pip.
-# XXX: remove sagemath from top install list.
-RUN apt install -y sagemath
+# Install recent NodeJS.
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt install -y nodejs
 
-# # Install Jupyterhub.
+# Install Jupyterhub.
 RUN npm install -g configurable-http-proxy && \
-    pip3 install 'jupyterhub<2.0.0'
+    pip3 install 'jupyterhub<=2.0.0'
 
+# Create R environment.
 COPY config/rpkgs.r .
 RUN Rscript rpkgs.r && \
     R -e 'IRkernel::installspec(user = FALSE)'
 
-##############################################################################
-# JUPYTER WORKING CONDITIONS
-##############################################################################
-
-# Jupyter extensions.
+# Install jupyter extensions.
 RUN pip3 install --upgrade jupyterlab jupyterlab-git
 RUN jupyter labextension install jupyterlab-plotly
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
@@ -230,14 +216,31 @@ RUN pip3 install \
     ipympl \
     lckr-jupyterlab-variableinspector
 
+# Copy configuration file.
 COPY config/jupyterhub_config.py .
 
 ##############################################################################
 # SIMULATION
 ##############################################################################
 
-# Install nvtop for monitoring GPU.
-RUN apt install -y nvtop
+# Install Haskell Stack.
+RUN curl -sSL https://get.haskellstack.org/ | sh
+
+# Install Modelica.
+RUN echo "deb https://build.openmodelica.org/apt `lsb_release -cs` stable" | \
+    tee /etc/apt/sources.list.d/openmodelica.list && \
+    wget -q http://build.openmodelica.org/apt/openmodelica.asc -O- | apt-key add - && \
+    apt-key fingerprint && apt update && apt install -y openmodelica
+
+# Install OpenFOAM ESI
+RUN curl -s https://dl.openfoam.com/add-debian-repo.sh | bash && \
+    wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash && \
+    apt update && apt install -y openfoam2112-default
+
+# Install OpenFOAM ORG
+RUN sh -c "wget -O - https://dl.openfoam.org/gpg.key | apt-key add -" && \
+    add-apt-repository http://dl.openfoam.org/ubuntu && \
+    apt update && apt install -y openfoam9
 
 # Install FEniCS.
 # XXX: https://fenics.readthedocs.io/en/latest/installation.html
@@ -279,6 +282,17 @@ RUN ln -s /opt/cantera/lib/python3.8/site-packages/cantera \
     ln -s /opt/cantera/lib/python3.8/site-packages/Cantera-2.5.1-py3.8.egg-info \
     /usr/local/lib/python3.8/site-packages/ && \
     sed -i  "s|which python|which python3|g" /opt/cantera/bin/setup_cantera
+
+# https://doc.sagemath.org/html/en/installation/index.html
+# https://doc.sagemath.org/html/en/installation/launching.html
+RUN apt-get remove -y sagemath && \
+    apt-get install -y python3-venv && \
+    wget http://www-ftp.lip6.fr/pub/math/sagemath/linux/64bit/sage-9.4-Ubuntu_20.04-x86_64.tar.bz2 && \
+    tar -xf sage-9.4-Ubuntu_20.04-x86_64.tar.bz2 -C /opt && \
+    cd /opt/SageMath && ./sage -c "exit()" && \
+    ln -s /opt/SageMath/sage /usr/local/bin/sage && \
+    jupyter kernelspec install /opt/SageMath/local/share/jupyter/kernels/sagemath && \
+    rm -rf sage-9.4-Ubuntu_20.04-x86_64.tar.bz2
 
 ##############################################################################
 # ENTRYPOINT
